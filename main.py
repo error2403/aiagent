@@ -10,6 +10,18 @@ client = OpenAI(
 	api_key=api_key,
 )
 
+response = client.chat.completions.create(
+	model = "openrouter/free",
+	messages=[
+		{
+			"role": "user",
+			"content": "Why is Boot.dev such a great place to learn backend development? Use one paragraph maximum.",
+		}
+	],
+)
+
+print(response.choices[0].message.content)
+
 def main():
     print("Hello from aiagent!")
 
