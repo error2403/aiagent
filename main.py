@@ -18,16 +18,15 @@ parser = argparse.ArgumentParser(description="AiAgent")
 parser.add_argument("user_prompt", type=str, help="User prompt")
 args = parser.parse_args()
 
+# create message list to hold previous context
+messages = [
+	{"role": "user", "content": args.user_prompt}
+]
 
 # send message to AI client
 response = client.chat.completions.create(
 	model = "openrouter/free",
-	messages=[
-		{
-			"role": "user",
-			"content": args.user_prompt,
-		}
-	],
+	messages=messages,
 )
 
 # check that response usage is not None
