@@ -3,10 +3,9 @@ import argparse
 
 from dotenv import load_dotenv
 from openai import OpenAI
-
+from prompts import system_prompt
 
 def main():
-      
 	# load .env file
 	load_dotenv()
 	api_key = os.environ.get("OPENROUTER_API_KEY")
@@ -25,6 +24,7 @@ def main():
 
 	# create message list to hold previous context
 	messages = [
+		{"role": "system", "content": system_prompt},
 		{"role": "user", "content": args.user_prompt}
 	]
 
@@ -32,6 +32,7 @@ def main():
 	response = client.chat.completions.create(
 		model = "openrouter/free",
 		messages=messages,
+		temperature=0,
 	)
 
 	# check that response usage is not None
