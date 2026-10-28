@@ -1,5 +1,7 @@
 import os
 
+from config import MAX_READ_CHARS
+
 def get_file_content(working_directory: str, file_path: str) -> str:
 	abs_working_dir = os.path.abspath(working_directory)
 	target_file = os.path.normpath(os.path.join(abs_working_dir, file_path))
@@ -16,10 +18,10 @@ def get_file_content(working_directory: str, file_path: str) -> str:
 
     # read contents of file
 	with open(target_file, 'r') as f:
-		content = f.read(10_000)
+		content = f.read(MAX_READ_CHARS)
 
         # After reading the first MAX_READ_CHARS
 		if f.read(1):
-			content += f'[...File "{file_path}" truncated at {10_000} characters]'
+			content += f'[...File "{file_path}" truncated at {MAX_READ_CHARS} characters]'
 
 		return content
