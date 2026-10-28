@@ -28,3 +28,21 @@ def get_file_content(working_directory: str, file_path: str) -> str:
 	except Exception as e:
 		return f'Error: reading file "{file_path}": {e}'
 
+
+schema_get_file_content = {
+	"type": "function",
+	"function": {
+		"name": "get_file_content",
+		"description": f"Reads the first {MAX_READ_CHARS} of the provided file relative to the working directory",
+		"parameters": {
+			"type": "object",
+			"properties": {
+				"file_path": {
+					"type": "string",
+					"description": "File path to read from, relative to the working directory",
+				},
+			},
+			"required": ["file_path"],
+		},
+	}
+}
