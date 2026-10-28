@@ -1,11 +1,10 @@
 import os
 import argparse
-import json
 
 from dotenv import load_dotenv
 from openai import OpenAI
 from prompts import system_prompt
-from call_function import available_functions
+from call_function import available_functions, call_function
 
 def main():
 	# load .env file
@@ -51,8 +50,11 @@ def main():
 
 	if response.choices[0].message.tool_calls:
 		for tool_call in response.choices[0].message.tool_calls:
-			function_args = json.loads(tool_call.function.arguments or "{}")
-			print(f"Calling function: {tool_call.function.name}({function_args})")
+			result_message = call_function(tool_call, args.verbose)
+			if not result_message["content"]:
+				raise Exception("empty tool call content")
+			if args.verbose:
+				print(f"-> {result_message['content']}")
 
 	print(response.choices[0].message.content)
 
