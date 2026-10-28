@@ -1,24 +1,26 @@
 import os
 
 def write_file(working_directory: str, file_path: str, content: str) -> str:
-	abs_working_dir = os.path.abspath(working_directory)
-	target_file = os.path.normpath(os.path.join(abs_working_dir, file_path))
+	try:
+		abs_working_dir = os.path.abspath(working_directory)
+		abs_file_path = os.path.normpath(os.path.join(abs_working_dir, file_path))
 
-	# Check if target file is within the working directory
-	valid_target_file = os.path.commonpath([abs_working_dir, target_file]) == abs_working_dir
+		# Check if target file is within the working directory
+		if os.path.commonpath([abs_working_dir, abs_file_path]) != abs_working_dir:
+			return f'Error: Cannot write to "{file_path}" as it is outside the permitted working directory'
 
-	if not valid_target_file:
-		return f'Error: Cannot write to "{file_path}" as it is outside the permitted working directory'
+		# check that target file_path is not a dir
+		if os.path.isdir(abs_file_path):
+			return f'Error: Cannot write to "{file_path}" as it is a directory'
 
-	# check that target dir is a dir
-	if os.path.isdir(target_file):
-		return f'Error: Cannot write to "{file_path}" as it is a directory'
+		# make sure all parent directories exist
+		os.makedirs(os.path.dirname(abs_file_path), exist_ok=True)
 
-	# make sure all parent directories exist
-	os.makedirs(os.path.dirname(target_file), exist_ok=True)
+		# open and write to file
+		with open(abs_file_path, 'w') as f:
+			f.write(content)
 
-	# open and write to file
-	with open(target_file, 'w') as f:
-		f.write(content)
+		return f'Successfully wrote to "{file_path}" ({len(content)} characters written)'
 
-	return f'Successfully wrote to "{file_path}" ({len(content)} characters written)'
+	except Exception as e:
+		return f"Error: writing to file: {e}"
