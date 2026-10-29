@@ -6,6 +6,7 @@ from openai import OpenAI
 from prompts import system_prompt
 from call_function import available_functions, call_function
 
+
 def main():
 	# load .env file
 	load_dotenv()
@@ -23,40 +24,52 @@ def main():
 	parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
 	args = parser.parse_args()
 
-	# create message list to hold previous context
+	# create message list to hold message context
 	messages = [
 		{"role": "system", "content": system_prompt},
 		{"role": "user", "content": args.user_prompt}
 	]
 
-	# send message to AI client
-	response = client.chat.completions.create(
-		model = "openrouter/free",
-		messages=messages,
-		temperature=0,
-		tools=available_functions,
-	)
+	# allow agent to iterate on messages
+	for _ in range(20):
+		# send message to AI client
+		response = client.chat.completions.create(
+			model = "openrouter/free",
+			messages=messages,
+			temperature=0,
+			tools=available_functions,
+		)
 
-	# check that response usage is not None
-	if response.usage is None:
-		raise RuntimeError
-		exit(1)
+		# check that response usage is not None
+		if response.usage is None:
+			raise RuntimeError
 
-	# verbose printing
-	if args.verbose:
-		print(f"User prompt: {args.user_prompt}")
-		print(f"Prompt tokens: {response.usage.prompt_tokens}")
-		print(f"Response tokens: {response.usage.completion_tokens}")
+		# verbose printing
+		if args.verbose:
+			print(f"User prompt: {args.user_prompt}")
+			print(f"Prompt tokens: {response.usage.prompt_tokens}")
+			print(f"Response tokens: {response.usage.completion_tokens}")
 
-	if response.choices[0].message.tool_calls:
-		for tool_call in response.choices[0].message.tool_calls:
-			result_message = call_function(tool_call, args.verbose)
-			if not result_message["content"]:
-				raise Exception("empty tool call content")
-			if args.verbose:
-				print(f"-> {result_message['content']}")
+		# add response to message context list
+		messages.append(response.choices[0].message)
 
-	print(response.choices[0].message.content)
+		if response.choices[0].message.tool_calls:
+			for tool_call in response.choices[0].message.tool_calls:
+				result_message = call_function(tool_call, args.verbose)
+				if not result_message["content"]:
+					raise Exception("empty tool call content")
+				if args.verbose:
+					print(f"-> {result_message['content']}")
+				
+				# add tool output info to message context list
+				messages.append(result_message)
+		else:
+			print(response.choices[0].message.content)
+			exit(0)
+
+	# hit iteration limit
+	print("Hit iteration limit, force quitting")
+	exit(1)
 
 if __name__ == "__main__":
     main()
